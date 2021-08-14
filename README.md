@@ -8,7 +8,7 @@ Currently supported sensors:
 
 ### Usage
 
-Clone and build it with `go build`.
+Clone and build it with `go build` (or download a potentially outdated binary from [here](https://github.com/mammuth/ha-linux-sensors/releases))
 
 ```
 $ ./ha-linux-sensors -h
