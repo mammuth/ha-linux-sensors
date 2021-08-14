@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	mqttUrl      = flag.String("mqttUrl", "https://localhost", "URL of the MQTT server")
+	mqttBroker   = flag.String("mqttBroker", "", "URI of the MQTT broker, eg. tcp://mqtt.eclipseprojects.io:1883")
 	scanInterval = flag.Int("interval", 10, "Scan interval in seconds")
 )
 
@@ -21,7 +21,7 @@ func main() {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, os.Interrupt)
 
-	client := NewClient(*mqttUrl, time.Duration(*scanInterval)*time.Second)
+	client := NewClient(*mqttBroker, time.Duration(*scanInterval)*time.Second)
 
 	client.Start()
 
