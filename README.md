@@ -1,9 +1,9 @@
 # ha-linux-sensors
 
-A go program that sends sensor data from Linux machines to Home Assistant (WIP)
+A go program that sends sensor data from Linux machines to Home Assistant via MQTT (WIP)
 
 Currently supported sensors:
-- Webcam enabled 
+- Webcam enabled (eg. `update ha-linux-sensors/<hostname>/webcam:on`)
 
 
 ### Usage
