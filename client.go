@@ -19,31 +19,43 @@ var defaultMQTTMessageHandler MQTT.MessageHandler = func(client MQTT.Client, msg
 	fmt.Printf("MSG: %s\n", msg.Payload())
 }
 
-type Client struct {
+type ClientConfig struct {
 	scanInterval time.Duration
-	ticker       chan bool
-	mqttClient   MQTT.Client
+	mqttBroker   string
+	mqttUser     string
+	mqttPassword string
+}
+type Client struct {
+	config     *ClientConfig
+	ticker     chan bool
+	mqttClient MQTT.Client
 }
 
-func NewClient(mqttBroker string, scanInterval time.Duration) *Client {
-	opts := MQTT.NewClientOptions().AddBroker(mqttBroker)
-	opts.SetClientID("go-simple") // todo mqtt client id?
+func NewClient(config *ClientConfig) *Client {
+	log.Printf("Using MQTT broker %s", config.mqttBroker)
+	log.Printf("Scan interval: %s seconds", strconv.Itoa(int(config.scanInterval.Seconds())))
+
+	opts := MQTT.NewClientOptions().AddBroker(config.mqttBroker)
+	opts.SetClientID("ha-linux-sensors")
+	opts.SetUsername(config.mqttUser)
+	opts.SetPassword(config.mqttPassword)
 	opts.SetDefaultPublishHandler(defaultMQTTMessageHandler)
 
-	//create and start a client using the above ClientOptions
+	// todo what happens when the connection is lsot? how to reconenct?
 	mqttClient := MQTT.NewClient(opts)
 	if token := mqttClient.Connect(); token.Wait() && token.Error() != nil {
-		panic(token.Error())
+		msg := fmt.Sprintf("Error connecting to broker %s", mqttBroker)
+		fmt.Errorf(msg, token.Error())
 	}
 
 	return &Client{
-		scanInterval: scanInterval,
-		mqttClient:   mqttClient,
+		config:     config,
+		mqttClient: mqttClient,
 	}
 }
 
 func (c *Client) Start() {
-	log.Println("Starting client...")
+	log.Println("Starting routine...")
 
 	ticker := c.startTicker(func() {
 		c.updateWebcamSensor()
@@ -58,7 +70,7 @@ func (c *Client) Stop() {
 func (c *Client) startTicker(f func()) chan bool {
 	done := make(chan bool, 1)
 	go func() {
-		ticker := time.NewTicker(c.scanInterval)
+		ticker := time.NewTicker(c.config.scanInterval)
 		defer ticker.Stop()
 		for {
 			f()

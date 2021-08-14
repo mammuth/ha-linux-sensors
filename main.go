@@ -10,8 +10,10 @@ import (
 )
 
 var (
-	mqttBroker   = flag.String("mqttBroker", "", "URI of the MQTT broker, eg. tcp://mqtt.eclipseprojects.io:1883")
 	scanInterval = flag.Int("interval", 10, "Scan interval in seconds")
+	mqttBroker   = flag.String("mqttBroker", "", "URI of the MQTT broker, eg. tcp://broker.hivemq.com:1883")
+	mqttUser     = flag.String("mqttUser", "", "Username for the mqtt connection")
+	mqttPassword = flag.String("mqttPassword", "", "Password for the mqtt connection")
 )
 
 func main() {
@@ -21,7 +23,12 @@ func main() {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, os.Interrupt)
 
-	client := NewClient(*mqttBroker, time.Duration(*scanInterval)*time.Second)
+	client := NewClient(&ClientConfig{
+		scanInterval: time.Duration(*scanInterval) * time.Second,
+		mqttBroker:   *mqttBroker,
+		mqttUser:     *mqttUser,
+		mqttPassword: *mqttPassword,
+	})
 
 	client.Start()
 
