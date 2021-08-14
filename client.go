@@ -92,8 +92,11 @@ func (c *Client) updateWebcamSensor() {
 		log.Println(err)
 		return
 	}
-	log.Printf("Webcam active: %t", webcamActive)
-	c.updateMqttSensor("webcam-active", strconv.FormatBool(webcamActive))
+	sensorValue := "off"
+	if webcamActive {
+		sensorValue = "on"
+	}
+	c.updateMqttSensor("webcam", sensorValue)
 }
 
 func (c *Client) updateMqttSensor(sensorName, value string) {
@@ -102,6 +105,7 @@ func (c *Client) updateMqttSensor(sensorName, value string) {
 		panic(err)
 	}
 	topic := fmt.Sprintf("ha-linux-sensors/%s/%s", hostName, sensorName)
+	log.Printf("Publishing sensor update %s:%s", topic, value)
 	token := c.mqttClient.Publish(topic, 0, false, value)
 	go func() {
 		_ = token.Wait()
