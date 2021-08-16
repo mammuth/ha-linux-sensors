@@ -5,6 +5,8 @@ A go program that sends sensor data from Linux machines to Home Assistant via MQ
 Currently supported sensors:
 - Webcam enabled (eg. `update ha-linux-sensors/<hostname>/webcam:on`)
 
+![image](https://user-images.githubusercontent.com/3121306/129533094-9eb04987-541f-4809-a9fa-0068e0bd96b1.png)
+
 
 ### Usage
 
