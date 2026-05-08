@@ -25,11 +25,11 @@ Usage of ./ha-linux-sensors:
     	Username for the mqtt connection
 ```
 
-### Run on boot with systemd
+### Run in background with systemd
 
-Create a systemd service at `/etc/systemd/system/ha-linux-sensors.service`:
+Create a user-level systemd service at `~/.config/systemd/user/ha-linux-sensors.service`:
 
-> Replace `/home/max/Code/ha-linux-sensors` in the example below with the absolute path to your local checkout.
+> Replace `%h/Code/ha-linux-sensors` in the example below with the absolute path to your local checkout if needed.
 
 ```ini
 [Unit]
@@ -39,18 +39,17 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-User=max
-WorkingDirectory=/home/max/Code/ha-linux-sensors
-EnvironmentFile=/etc/ha-linux-sensors.env
-ExecStart=/home/max/Code/ha-linux-sensors/ha-linux-sensors -mqttBroker ${MQTT_BROKER} -mqttUser ${MQTT_USER} -mqttPassword ${MQTT_PASSWORD}
+WorkingDirectory=%h/Code/ha-linux-sensors
+EnvironmentFile=%h/.config/ha-linux-sensors/env
+ExecStart=%h/Code/ha-linux-sensors/ha-linux-sensors -mqttBroker ${MQTT_BROKER} -mqttUser ${MQTT_USER} -mqttPassword ${MQTT_PASSWORD}
 Restart=on-failure
 RestartSec=5
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target
 ```
 
-Create the env file at `/etc/ha-linux-sensors.env`:
+Create the env file at `~/.config/ha-linux-sensors/env`:
 
 ```bash
 MQTT_BROKER=tcp://192.168.178.20:1883
@@ -61,10 +60,18 @@ MQTT_PASSWORD=replace-with-your-password
 Set secure permissions and enable the service:
 
 ```bash
-sudo chmod 600 /etc/ha-linux-sensors.env
-sudo systemctl daemon-reload
-sudo systemctl enable --now ha-linux-sensors.service
-sudo systemctl status ha-linux-sensors.service
+mkdir -p ~/.config/systemd/user ~/.config/ha-linux-sensors
+chmod 600 ~/.config/ha-linux-sensors/env
+systemctl --user daemon-reload
+systemctl --user enable --now ha-linux-sensors.service
+systemctl --user status ha-linux-sensors.service
 ```
 
-At the Home Assistant side, you probably want to create a [MQTT sensor](https://www.home-assistant.io/integrations/binary_sensor.mqtt/).
+Optional: run at boot before login (requires one-time root command):
+
+```bash
+sudo loginctl enable-linger <your-user>
+```
+
+### HomeAssistant integration
+You probably want to create a [MQTT sensor](https://www.home-assistant.io/integrations/binary_sensor.mqtt/).
